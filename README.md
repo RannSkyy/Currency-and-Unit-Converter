@@ -1,16 +1,14 @@
-# OmniConvert — Live Currency & Universal Unit Converter
+# OmniConvert – Universal Converter & Live Currency Exchange
 
 ![HTML5](https://img.shields.io/badge/HTML5-E34F26?logo=html5&logoColor=white)
-![JavaScript](https://img.shields.io/badge/JavaScript-ES6-F7DF1E?logo=javascript&logoColor=black)
-![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-v3-38BDF8?logo=tailwindcss)
-![Python](https://img.shields.io/badge/Python-3.x-3776AB?logo=python&logoColor=white)
+![JavaScript](https://img.shields.io/badge/JavaScript-ES6+-F7DF1E?logo=javascript&logoColor=black)
+![Tailwind CSS](https://img.shields.io/badge/Tailwind_CSS-CDN-38BDF8?logo=tailwindcss)
+![Responsive](https://img.shields.io/badge/Responsive-Mobile--First-success)
 ![License](https://img.shields.io/badge/License-MIT-green)
 
 ## Overview
 
-OmniConvert is a lightweight converter application available as both a web app and a Python CLI tool. It provides real-time currency conversion using a public exchange rate API alongside a comprehensive collection of universal unit converters, all within a fast, responsive, and modern interface.
-
-The project is designed with a backend-free architecture, offline fallback support, and smart local caching to deliver a smooth and reliable user experience.
+OmniConvert is a modern client-side web application that combines real-time currency exchange and universal unit conversion in one fast, intuitive, and responsive interface. It supports live exchange rates, offline caching, and accurate conversions across multiple measurement categories without requiring a backend server.
 
 ---
 
@@ -18,146 +16,130 @@ The project is designed with a backend-free architecture, offline fallback suppo
 
 ### Live Currency Converter
 
-- Real-time exchange rates
-- Public API integration (no API key required)
-- Smart local caching
-- Offline fallback support
-- Automatic currency search
-- Currency swap
-- Two-way conversion
-- Fast calculations
+- Real-time exchange rates from ExchangeRate API
+- Supports 160+ world currencies
+- Instant currency conversion
+- Smart currency search
+- Animated currency swap
+- Popular exchange rate dashboard
+- Automatic exchange rate updates
+- Offline fallback rates
+- 12-hour local cache
+- No API key required
 
 ### Universal Unit Converter
 
+Convert between multiple categories:
+
 #### Length
-- Kilometer (km)
-- Meter (m)
-- Centimeter (cm)
-- Millimeter (mm)
-- Mile (mi)
-- Foot (ft)
+- Meter
+- Kilometer
+- Centimeter
+- Millimeter
+- Mile
+- Yard
+- Foot
+- Inch
 
 #### Mass
-- Kilogram (kg)
-- Gram (g)
-- Milligram (mg)
-- Pound (lb)
-- Ounce (oz)
+- Kilogram
+- Gram
+- Milligram
+- Metric Ton
+- Pound
+- Ounce
 
 #### Temperature
-- Celsius (°C)
-- Fahrenheit (°F)
-- Kelvin (K)
+- Celsius
+- Fahrenheit
+- Kelvin
 
 #### Volume
-- Liter (L)
-- Milliliter (mL)
-- Gallon (gal)
-- Cup
+- Liter
+- Milliliter
+- Cubic Meter
+- US Gallon
+- US Fluid Ounce
+
+### Multi-Unit Breakdown
+
+- Displays conversions for all units in the selected category
+- Automatic updates while typing
+- Clean information grid
 
 ### User Experience
 
-- Modern dark theme
-- Responsive design
-- Copy-to-clipboard
-- Fast interface
-- Mobile-friendly
-- Keyboard-friendly
-- Smooth interactions
+- Modern dark interface
+- Mobile-first responsive layout
+- Smooth tab switching
+- Fast calculations
+- One-click copy result
+- Toast notifications
+- API status indicator
 
 ---
 
 ## Tech Stack
 
-### Frontend
-
 - HTML5
-- Tailwind CSS v3
 - Vanilla JavaScript (ES6+)
-- Fetch API
-- Local Storage
+- Tailwind CSS (CDN)
 - Lucide Icons
-- Google Fonts
-
-### CLI Version
-
-- Python 3.x
-- Requests
-
----
-
-## Project Structure
-
-```text
-Currency-Unit-Converter/
-│
-├── index.html
-├── main.py
-├── README.md
-└── LICENSE
-```
-
----
-
-## Installation
-
-### Web Version
-
-```bash
-git clone https://github.com/yourusername/Currency-Unit-Converter.git
-
-cd Currency-Unit-Converter
-```
-
-Open `index.html` in your browser or use Live Server.
-
----
-
-### Python CLI
-
-Install the required dependency:
-
-```bash
-pip install requests
-```
-
-Run the application:
-
-```bash
-python main.py
-```
+- Inter Font
+- JetBrains Mono
+- ExchangeRate API
+- Browser Local Storage
 
 ---
 
 ## API
 
-The currency converter uses the public exchange rate service:
+Exchange rates are retrieved from:
 
-- Open Exchange Rates API (`open.er-api.com`)
+```
+https://open.er-api.com/v6/latest/USD
+```
 
-No API key is required.
+Features:
+
+- Live exchange rates
+- Free endpoint
+- No API key required
+- Automatic cache fallback
 
 ---
 
-## Performance
+## Offline Support
 
-- Smart Local Storage caching
-- Reduced network requests
-- Instant loading
-- Offline fallback
-- Lightweight architecture
+OmniConvert continues working even when an internet connection is unavailable.
+
+Features include:
+
+- 12-hour exchange rate cache
+- Automatic fallback to cached data
+- Built-in static exchange rates
+- Seamless offline experience
+
+---
+
+## Data Persistence
+
+The application stores user data locally using Local Storage, including:
+
+- Cached exchange rates
+- Last update timestamp
+- User preferences
 
 ---
 
 ## Error Handling
 
-- Input validation
-- Network timeout handling
-- API error handling
-- Offline fallback
-- Invalid number protection
-- Safe temperature calculations
-- Divide-by-zero prevention
+- Input sanitization
+- Invalid value prevention
+- Floating-point precision handling
+- API failure fallback
+- Network error recovery
+- User-friendly notifications
 
 ---
 
@@ -172,18 +154,51 @@ Optimized for:
 
 ---
 
-## Main Highlights
+## Project Structure
 
-- Real-time currency conversion
+```text
+project/
+├── index.html
+├── css/
+├── js/
+│   ├── api.js
+│   ├── currency.js
+│   ├── converter.js
+│   ├── storage.js
+│   ├── ui.js
+│   └── app.js
+├── assets/
+└── icons/
+```
+
+---
+
+## Installation
+
+```bash
+git clone https://github.com/yourusername/omniconvert.git
+
+cd omniconvert
+```
+
+Open `index.html` in your browser, or use a local development server.
+
+---
+
+## Highlights
+
+- Real-time currency exchange
+- 160+ supported currencies
 - Universal unit converter
-- Offline fallback support
-- Smart caching
-- Responsive UI
-- Dark mode design
-- Copy-to-clipboard
-- Lightweight architecture
-- Web + Python CLI
+- Length, Mass, Temperature, and Volume conversions
+- Smart search and currency swap
+- Multi-unit breakdown grid
+- Offline support
+- Local cache system
+- One-click copy results
+- Responsive dark UI
 - No backend required
+- No API key required
 
 ---
 
