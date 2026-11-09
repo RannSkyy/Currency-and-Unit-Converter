@@ -1,0 +1,901 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OmniConvert | Currency & Unit Converter</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        charcoal: {
+                            900: '#0F1115',
+                            800: '#161920',
+                            700: '#212530',
+                            600: '#2D3342',
+                            500: '#3E465B',
+                        },
+                        amber: {
+                            400: '#F59E0B',
+                            500: '#D97706',
+                            600: '#B45309',
+                            50: '#FFFBEB',
+                        }
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'system-ui', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    }
+                }
+            }
+        }
+    </script>
+    <!-- Google Font Inter & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- Lucide Icons -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* Custom scrollbars */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #161920;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2D3342;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #3E465B;
+        }
+        /* Custom transition smoothers */
+        .tab-transition {
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        /* Hide number input arrows */
+        input[type='number']::-webkit-inner-spin-button,
+        input[type='number']::-webkit-outer-spin-button {
+            -webkit-appearance: none;
+            margin: 0;
+        }
+        input[type='number'] {
+            -moz-appearance: textfield;
+        }
+    </style>
+</head>
+<body class="bg-charcoal-900 text-slate-100 font-sans min-h-screen flex flex-col justify-between selection:bg-amber-500/30 selection:text-amber-400">
+
+    <!-- Header Section -->
+    <header class="border-b border-charcoal-700/60 bg-charcoal-900/80 backdrop-blur-md sticky top-0 z-30">
+        <div class="max-w-6xl mx-auto px-4 sm:px-6 py-4 flex items-center justify-between">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/30 flex items-center justify-center text-amber-500 font-bold text-xl shadow-inner">
+                    <i data-lucide="refresh-cw" class="w-5 h-5 text-amber-500"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold tracking-tight text-slate-100 flex items-center gap-2">
+                        OmniConvert <span class="text-xs font-medium px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/20">Live API</span>
+                    </h1>
+                    <p class="text-xs text-slate-400">Konverter Mata Uang & Satuan Universal</p>
+                </div>
+            </div>
+
+            <!-- Tab Buttons -->
+            <nav class="flex p-1 bg-charcoal-800 border border-charcoal-700/80 rounded-xl text-sm font-medium">
+                <button id="tab-currency" onclick="switchTab('currency')" class="tab-transition flex items-center gap-2 px-4 py-2 rounded-lg text-amber-400 bg-charcoal-700/80 shadow-sm">
+                    <i data-lucide="coins" class="w-4 h-4"></i>
+                    <span>Mata Uang</span>
+                </button>
+                <button id="tab-units" onclick="switchTab('units')" class="tab-transition flex items-center gap-2 px-4 py-2 rounded-lg text-slate-400 hover:text-slate-200">
+                    <i data-lucide="ruler" class="w-4 h-4"></i>
+                    <span>Satuan Unit</span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-6xl mx-auto px-4 sm:px-6 py-8 flex-grow w-full">
+        
+        <!-- SECTION: CURRENCY CONVERTER -->
+        <section id="section-currency" class="space-y-6">
+            <!-- Top Status Bar -->
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 p-4 rounded-xl bg-charcoal-800/50 border border-charcoal-700/60 text-xs text-slate-400">
+                <div class="flex items-center gap-2" id="api-status-container">
+                    <span class="relative flex h-2.5 w-2.5">
+                        <span id="status-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+                        <span id="status-dot" class="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
+                    </span>
+                    <span id="api-status-text" class="font-medium text-slate-300">Menghubungkan ke API Kurs...</span>
+                </div>
+                <div class="flex items-center gap-4">
+                    <span id="last-updated" class="font-mono">Pembaruan terakhir: -</span>
+                    <button onclick="fetchExchangeRates(true)" title="Perbarui Kurs Sekarang" class="p-1.5 hover:bg-charcoal-700 rounded-lg transition-colors text-slate-300 hover:text-amber-400 flex items-center gap-1">
+                        <i data-lucide="rotate-cw" class="w-3.5 h-3.5"></i>
+                        <span class="hidden sm:inline text-xs">Refresh</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Currency Main Card -->
+            <div class="bg-charcoal-800 border border-charcoal-700/70 rounded-2xl p-6 shadow-xl relative overflow-hidden">
+                <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 items-center">
+                    
+                    <!-- FROM Currency Input Block -->
+                    <div class="space-y-2">
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Dari</label>
+                        <div class="bg-charcoal-900 border border-charcoal-700 focus-within:border-amber-500/80 rounded-xl p-3.5 transition-all">
+                            <div class="flex justify-between items-center mb-2">
+                                <button type="button" onclick="openCurrencySelector('from')" class="flex items-center gap-2 group focus:outline-none">
+                                    <span id="from-flag" class="text-xl">🇺🇸</span>
+                                    <span id="from-code" class="font-mono font-bold text-slate-100 group-hover:text-amber-400 transition-colors">USD</span>
+                                    <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 group-hover:text-amber-400"></i>
+                                </button>
+                                <span id="from-name" class="text-xs text-slate-400 truncate max-w-[150px]">US Dollar</span>
+                            </div>
+                            <input type="number" id="from-amount" value="1" min="0" step="any" placeholder="0.00" class="w-full bg-transparent font-mono text-2xl font-semibold text-slate-100 focus:outline-none" oninput="calculateCurrency('from')">
+                        </div>
+                    </div>
+
+                    <!-- Swap Button -->
+                    <div class="flex justify-center md:pt-6">
+                        <button onclick="swapCurrencies()" class="p-3 bg-charcoal-700 hover:bg-amber-500 hover:text-charcoal-900 border border-charcoal-600 rounded-full text-amber-400 transition-all transform hover:rotate-180 shadow-md active:scale-95" title="Tukar Mata Uang">
+                            <i data-lucide="arrow-left-right" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+
+                    <!-- TO Currency Input Block -->
+                    <div class="space-y-2">
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Ke</label>
+                        <div class="bg-charcoal-900 border border-charcoal-700 focus-within:border-amber-500/80 rounded-xl p-3.5 transition-all">
+                            <div class="flex justify-between items-center mb-2">
+                                <button type="button" onclick="openCurrencySelector('to')" class="flex items-center gap-2 group focus:outline-none">
+                                    <span id="to-flag" class="text-xl">🇮🇩</span>
+                                    <span id="to-code" class="font-mono font-bold text-slate-100 group-hover:text-amber-400 transition-colors">IDR</span>
+                                    <i data-lucide="chevron-down" class="w-4 h-4 text-slate-400 group-hover:text-amber-400"></i>
+                                </button>
+                                <span id="to-name" class="text-xs text-slate-400 truncate max-w-[150px]">Indonesian Rupiah</span>
+                            </div>
+                            <input type="number" id="to-amount" placeholder="0.00" min="0" step="any" class="w-full bg-transparent font-mono text-2xl font-semibold text-amber-400 focus:outline-none" oninput="calculateCurrency('to')">
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Single Unit Exchange Rate Info -->
+                <div class="mt-6 pt-4 border-t border-charcoal-700/50 flex flex-col sm:flex-row justify-between items-center gap-2 text-sm text-slate-400">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="info" class="w-4 h-4 text-amber-500"></i>
+                        <span id="single-rate-text">1 USD = ... IDR</span>
+                    </div>
+                    <div class="font-mono text-xs text-slate-400" id="inverse-rate-text">
+                        1 IDR = ... USD
+                    </div>
+                </div>
+            </div>
+
+            <!-- Popular Conversion Cards Grid -->
+            <div>
+                <h3 class="text-sm font-semibold text-slate-300 mb-3 tracking-wide">Kurs Populer Terhadap <span id="base-currency-label" class="text-amber-400 font-mono">USD</span></h3>
+                <div id="popular-rates-grid" class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3">
+                    <!-- Dynamic Insertion by JS -->
+                </div>
+            </div>
+        </section>
+
+        <!-- SECTION: UNIVERSAL UNIT CONVERTER -->
+        <section id="section-units" class="space-y-6 hidden">
+            
+            <!-- Category Navigation -->
+            <div class="flex flex-wrap gap-2 p-1.5 bg-charcoal-800 rounded-xl border border-charcoal-700/70">
+                <button onclick="setUnitCategory('length')" id="unit-cat-length" class="unit-cat-btn flex-1 min-w-[100px] py-2 px-4 rounded-lg text-sm font-medium transition-all text-amber-400 bg-charcoal-700 border border-charcoal-600/50 flex items-center justify-center gap-2">
+                    <i data-lucide="ruler" class="w-4 h-4"></i>
+                    <span>Panjang</span>
+                </button>
+                <button onclick="setUnitCategory('weight')" id="unit-cat-weight" class="unit-cat-btn flex-1 min-w-[100px] py-2 px-4 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-slate-200 flex items-center justify-center gap-2">
+                    <i data-lucide="weight" class="w-4 h-4"></i>
+                    <span>Massa</span>
+                </button>
+                <button onclick="setUnitCategory('temperature')" id="unit-cat-temperature" class="unit-cat-btn flex-1 min-w-[100px] py-2 px-4 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-slate-200 flex items-center justify-center gap-2">
+                    <i data-lucide="thermometer" class="w-4 h-4"></i>
+                    <span>Suhu</span>
+                </button>
+                <button onclick="setUnitCategory('volume')" id="unit-cat-volume" class="unit-cat-btn flex-1 min-w-[100px] py-2 px-4 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-slate-200 flex items-center justify-center gap-2">
+                    <i data-lucide="box" class="w-4 h-4"></i>
+                    <span>Volume</span>
+                </button>
+            </div>
+
+            <!-- Unit Converter Form Card -->
+            <div class="bg-charcoal-800 border border-charcoal-700/70 rounded-2xl p-6 shadow-xl">
+                <div class="grid grid-cols-1 md:grid-cols-[1fr_auto_1fr] gap-4 items-center">
+                    
+                    <!-- FROM Unit -->
+                    <div class="space-y-2">
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Nilai Awal</label>
+                        <div class="bg-charcoal-900 border border-charcoal-700 focus-within:border-amber-500/80 rounded-xl p-3.5 transition-all space-y-2">
+                            <select id="unit-from-select" onchange="convertUnits()" class="w-full bg-charcoal-800 border border-charcoal-700 rounded-lg text-slate-100 p-2 text-sm focus:outline-none focus:border-amber-500">
+                                <!-- Populated dynamically -->
+                            </select>
+                            <input type="number" id="unit-from-input" value="1" step="any" placeholder="0" class="w-full bg-transparent font-mono text-2xl font-semibold text-slate-100 focus:outline-none" oninput="convertUnits('from')">
+                        </div>
+                    </div>
+
+                    <!-- Swap Units Button -->
+                    <div class="flex justify-center md:pt-6">
+                        <button onclick="swapUnits()" class="p-3 bg-charcoal-700 hover:bg-amber-500 hover:text-charcoal-900 border border-charcoal-600 rounded-full text-amber-400 transition-all transform hover:rotate-180 shadow-md active:scale-95" title="Tukar Satuan">
+                            <i data-lucide="arrow-left-right" class="w-5 h-5"></i>
+                        </button>
+                    </div>
+
+                    <!-- TO Unit -->
+                    <div class="space-y-2">
+                        <label class="block text-xs font-semibold text-slate-400 uppercase tracking-wider">Hasil Konversi</label>
+                        <div class="bg-charcoal-900 border border-charcoal-700 focus-within:border-amber-500/80 rounded-xl p-3.5 transition-all space-y-2">
+                            <select id="unit-to-select" onchange="convertUnits()" class="w-full bg-charcoal-800 border border-charcoal-700 rounded-lg text-slate-100 p-2 text-sm focus:outline-none focus:border-amber-500">
+                                <!-- Populated dynamically -->
+                            </select>
+                            <input type="number" id="unit-to-input" placeholder="0" step="any" class="w-full bg-transparent font-mono text-2xl font-semibold text-amber-400 focus:outline-none" oninput="convertUnits('to')">
+                        </div>
+                    </div>
+
+                </div>
+
+                <!-- Formula / Detail Info -->
+                <div class="mt-6 pt-4 border-t border-charcoal-700/50 text-sm text-slate-400 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <i data-lucide="calculator" class="w-4 h-4 text-amber-500"></i>
+                        <span id="unit-formula-text" class="font-mono text-xs text-slate-300">Rumus: -</span>
+                    </div>
+                    <button onclick="copyUnitResult()" class="text-xs text-amber-400 hover:text-amber-300 flex items-center gap-1">
+                        <i data-lucide="copy" class="w-3.5 h-3.5"></i> Salin Hasil
+                    </button>
+                </div>
+            </div>
+
+            <!-- Quick Conversion Reference Table -->
+            <div class="bg-charcoal-800/40 border border-charcoal-700/50 rounded-xl p-5">
+                <h4 class="text-xs font-semibold uppercase text-slate-400 tracking-wider mb-3">Tabel Ringkasan Konversi</h4>
+                <div id="unit-quick-table" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3">
+                    <!-- Populated dynamically -->
+                </div>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-charcoal-700/60 bg-charcoal-900 py-6 text-center text-xs text-slate-500">
+        <div class="max-w-6xl mx-auto px-4 flex flex-col sm:flex-row justify-between items-center gap-2">
+            <div>Data kurs diperbarui secara otomatis via <a href="https://www.exchangerate-api.com" target="_blank" class="text-amber-500/80 hover:underline">ExchangeRate-API</a></div>
+            <div>&copy; OmniConvert Engine • Desain Presisi & Responsif</div>
+        </div>
+    </footer>
+
+    <!-- MODAL: Currency Selection Dialog -->
+    <div id="currency-modal" class="fixed inset-0 bg-charcoal-900/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-charcoal-800 border border-charcoal-700 rounded-2xl w-full max-w-md shadow-2xl flex flex-col max-h-[85vh] animate-in fade-in zoom-in-95 duration-150">
+            <!-- Modal Header -->
+            <div class="p-4 border-b border-charcoal-700/70 flex items-center justify-between">
+                <h3 class="font-semibold text-slate-100 flex items-center gap-2">
+                    <i data-lucide="search" class="w-4 h-4 text-amber-500"></i> Pilih Mata Uang
+                </h3>
+                <button onclick="closeCurrencySelector()" class="text-slate-400 hover:text-slate-200 p-1 rounded-lg hover:bg-charcoal-700">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <!-- Search Bar -->
+            <div class="p-3 border-b border-charcoal-700/50">
+                <input type="text" id="currency-search" placeholder="Cari nama atau kode (e.g. USD, Rupiah)..." oninput="filterCurrencyList()" class="w-full bg-charcoal-900 border border-charcoal-700 rounded-xl px-3.5 py-2 text-sm text-slate-100 focus:outline-none focus:border-amber-500 font-mono">
+            </div>
+
+            <!-- Currency List -->
+            <div id="currency-list" class="p-2 overflow-y-auto space-y-1 flex-grow">
+                <!-- Dynamic insertion -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Notification Toast Container -->
+    <div id="toast" class="fixed bottom-6 right-6 z-50 bg-amber-500 text-charcoal-900 font-semibold px-4 py-2.5 rounded-xl shadow-lg flex items-center gap-2 transform translate-y-20 opacity-0 transition-all duration-300 pointer-events-none">
+        <i data-lucide="check-circle-2" class="w-5 h-5"></i>
+        <span id="toast-message">Tersalin ke papan klip!</span>
+    </div>
+
+    <!-- APPLICATION SCRIPT -->
+    <script>
+        // -------------------------------------------------------------
+        // GLOBAL STATE & DATA DEFINITIONS
+        // -------------------------------------------------------------
+        const API_URL = 'https://open.er-api.com/v6/latest/USD';
+        
+        let exchangeRates = {};
+        let lastRatesUpdate = null;
+        let selectedFrom = 'USD';
+        let selectedTo = 'IDR';
+        let activeSelectorTarget = null; // 'from' or 'to'
+
+        // Comprehensive currency definitions with flags & full names
+        const currencyData = {
+            "USD": { name: "US Dollar", flag: "🇺🇸" },
+            "IDR": { name: "Indonesian Rupiah", flag: "🇮🇩" },
+            "EUR": { name: "Euro", flag: "🇪🇺" },
+            "GBP": { name: "British Pound", flag: "🇬🇧" },
+            "JPY": { name: "Japanese Yen", flag: "🇯🇵" },
+            "AUD": { name: "Australian Dollar", flag: "🇦🇺" },
+            "SGD": { name: "Singapore Dollar", flag: "🇸🇬" },
+            "CAD": { name: "Canadian Dollar", flag: "🇨🇦 text-slate-100" },
+            "CHF": { name: "Swiss Franc", flag: "🇨🇭" },
+            "CNY": { name: "Chinese Yuan", flag: "🇨🇳" },
+            "HKD": { name: "Hong Kong Dollar", flag: "🇭🇰" },
+            "MYR": { name: "Malaysian Ringgit", flag: "🇲🇾" },
+            "THB": { name: "Thai Baht", flag: "🇹🇭" },
+            "KRW": { name: "South Korean Won", flag: "🇰🇷" },
+            "INR": { name: "Indian Rupee", flag: "🇮🇳" },
+            "NZD": { name: "New Zealand Dollar", flag: "🇳🇿" },
+            "BRL": { name: "Brazilian Real", flag: "🇧🇷" },
+            "RUB": { name: "Russian Ruble", flag: "🇷🇺" },
+            "SAR": { name: "Saudi Riyal", flag: "🇸🇦" },
+            "AED": { name: "UAE Dirham", flag: "🇦🇪" },
+            "PHP": { name: "Philippine Peso", flag: "🇵🇭" },
+            "VND": { name: "Vietnamese Dong", flag: "🇻🇳" }
+        };
+
+        // Fallback Exchange Rates (Used if API fetch fails completely)
+        const fallbackRates = {
+            "USD": 1,
+            "IDR": 15850,
+            "EUR": 0.92,
+            "GBP": 0.79,
+            "JPY": 154.2,
+            "AUD": 1.52,
+            "SGD": 1.34,
+            "CAD": 1.39,
+            "CHF": 0.88,
+            "CNY": 7.23,
+            "HKD": 7.78,
+            "MYR": 4.47,
+            "THB": 34.8,
+            "KRW": 1395,
+            "INR": 84.4,
+            "SAR": 3.75,
+            "AED": 3.67
+        };
+
+        // Unit definitions & base ratios
+        const unitCategories = {
+            length: {
+                name: "Panjang",
+                base: "m",
+                units: {
+                    "km": { name: "Kilometer (km)", factor: 1000 },
+                    "m": { name: "Meter (m)", factor: 1 },
+                    "cm": { name: "Sentimeter (cm)", factor: 0.01 },
+                    "mm": { name: "Milimeter (mm)", factor: 0.001 },
+                    "mi": { name: "Mil (mi)", factor: 1609.344 },
+                    "yd": { name: "Yard (yd)", factor: 0.9144 },
+                    "ft": { name: "Kaki / Feet (ft)", factor: 0.3048 },
+                    "in": { name: "Inci / Inch (in)", factor: 0.0254 }
+                }
+            },
+            weight: {
+                name: "Massa / Berat",
+                base: "kg",
+                units: {
+                    "t": { name: "Ton (t)", factor: 1000 },
+                    "kg": { name: "Kilogram (kg)", factor: 1 },
+                    "g": { name: "Gram (g)", factor: 0.001 },
+                    "mg": { name: "Miligram (mg)", factor: 0.000001 },
+                    "lb": { name: "Pound (lbs)", factor: 0.45359237 },
+                    "oz": { name: "Ounce (oz)", factor: 0.0283495231 }
+                }
+            },
+            temperature: {
+                name: "Suhu",
+                type: "temperature", // special handling for non-linear ratios
+                units: {
+                    "C": { name: "Celsius (°C)" },
+                    "F": { name: "Fahrenheit (°F)" },
+                    "K": { name: "Kelvin (K)" }
+                }
+            },
+            volume: {
+                name: "Volume",
+                base: "l",
+                units: {
+                    "m3": { name: "Meter Kubik (m³)", factor: 1000 },
+                    "l": { name: "Liter (L)", factor: 1 },
+                    "ml": { name: "Mililiter (mL)", factor: 0.001 },
+                    "gal": { name: "Galon AS (gal)", factor: 3.78541 },
+                    "pt": { name: "Pint AS (pt)", factor: 0.473176 },
+                    "floz": { name: "Fluid Oz AS (fl oz)", factor: 0.0295735 }
+                }
+            }
+        };
+
+        let currentUnitCategory = 'length';
+
+        // -------------------------------------------------------------
+        // INITIALIZATION
+        // -------------------------------------------------------------
+        window.onload = function () {
+            lucide.createIcons();
+            fetchExchangeRates();
+            initUnitConverter();
+        };
+
+        // Tab Switcher
+        function switchTab(tab) {
+            const curSec = document.getElementById('section-currency');
+            const unitSec = document.getElementById('section-units');
+            const curBtn = document.getElementById('tab-currency');
+            const unitBtn = document.getElementById('tab-units');
+
+            if (tab === 'currency') {
+                curSec.classList.remove('hidden');
+                unitSec.classList.add('hidden');
+                
+                curBtn.className = "tab-transition flex items-center gap-2 px-4 py-2 rounded-lg text-amber-400 bg-charcoal-700/80 shadow-sm";
+                unitBtn.className = "tab-transition flex items-center gap-2 px-4 py-2 rounded-lg text-slate-400 hover:text-slate-200";
+            } else {
+                curSec.classList.add('hidden');
+                unitSec.classList.remove('hidden');
+
+                unitBtn.className = "tab-transition flex items-center gap-2 px-4 py-2 rounded-lg text-amber-400 bg-charcoal-700/80 shadow-sm";
+                curBtn.className = "tab-transition flex items-center gap-2 px-4 py-2 rounded-lg text-slate-400 hover:text-slate-200";
+            }
+        }
+
+        // -------------------------------------------------------------
+        // CURRENCY CONVERTER LOGIC & API
+        // -------------------------------------------------------------
+        async function fetchExchangeRates(forceRefresh = false) {
+            const statusText = document.getElementById('api-status-text');
+            const statusPing = document.getElementById('status-ping');
+            const statusDot = document.getElementById('status-dot');
+            const lastUpdatedText = document.getElementById('last-updated');
+
+            statusText.innerText = "Mengambil data kurs terbaru...";
+            statusDot.className = "relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500";
+            statusPing.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75";
+
+            try {
+                // Check local storage cache if not forced
+                const cachedData = localStorage.getItem('omni_rates_cache');
+                const cachedTime = localStorage.getItem('omni_rates_time');
+                const now = new Date().getTime();
+
+                // 1 hour cache validity
+                if (!forceRefresh && cachedData && cachedTime && (now - parseInt(cachedTime) < 3600000)) {
+                    exchangeRates = JSON.parse(cachedData);
+                    lastRatesUpdate = new Date(parseInt(cachedTime));
+                    updateRatesUI("Data tersimpan (Cache)");
+                    return;
+                }
+
+                const response = await fetch(API_URL);
+                if (!response.ok) throw new Error('Network response non-ok');
+
+                const data = await response.json();
+                exchangeRates = data.rates;
+                lastRatesUpdate = new Date();
+
+                // Merge codes from API into our currency dictionary if needed
+                for (const code in exchangeRates) {
+                    if (!currencyData[code]) {
+                        currencyData[code] = { name: `${code} Currency`, flag: "🌐" };
+                    }
+                }
+
+                // Cache it
+                localStorage.setItem('omni_rates_cache', JSON.stringify(exchangeRates));
+                localStorage.setItem('omni_rates_time', now.toString());
+
+                updateRatesUI("Live API Terhubung");
+
+            } catch (err) {
+                console.warn("Gagal mengambil data dari API, menggunakan data cadangan:", err);
+                exchangeRates = fallbackRates;
+                lastRatesUpdate = new Date();
+                
+                statusText.innerText = "Mode Offline / Data Cadangan";
+                statusDot.className = "relative inline-flex rounded-full h-2.5 w-2.5 bg-rose-500";
+                statusPing.className = "hidden";
+                lastUpdatedText.innerText = "Menggunakan Rate Lokal Fallback";
+                
+                calculateCurrency('from');
+                renderPopularGrid();
+            }
+        }
+
+        function updateRatesUI(statusMsg) {
+            const statusText = document.getElementById('api-status-text');
+            const statusPing = document.getElementById('status-ping');
+            const statusDot = document.getElementById('status-dot');
+            const lastUpdatedText = document.getElementById('last-updated');
+
+            statusText.innerText = statusMsg;
+            statusDot.className = "relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500";
+            statusPing.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75";
+
+            if (lastRatesUpdate) {
+                const timeStr = lastRatesUpdate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                lastUpdatedText.innerText = `Pembaruan: ${timeStr}`;
+            }
+
+            calculateCurrency('from');
+            renderPopularGrid();
+        }
+
+        function calculateCurrency(source = 'from') {
+            if (!exchangeRates || Object.keys(exchangeRates).length === 0) return;
+
+            const fromInput = document.getElementById('from-amount');
+            const toInput = document.getElementById('to-amount');
+            const rateFrom = exchangeRates[selectedFrom] || 1;
+            const rateTo = exchangeRates[selectedTo] || 1;
+
+            // Direct conversions via base (USD)
+            if (source === 'from') {
+                const val = parseFloat(fromInput.value);
+                if (isNaN(val)) {
+                    toInput.value = '';
+                    return;
+                }
+                const result = (val / rateFrom) * rateTo;
+                toInput.value = formatNumberInput(result);
+            } else {
+                const val = parseFloat(toInput.value);
+                if (isNaN(val)) {
+                    fromInput.value = '';
+                    return;
+                }
+                const result = (val / rateTo) * rateFrom;
+                fromInput.value = formatNumberInput(result);
+            }
+
+            // Update single unit display
+            const singleResult = (1 / rateFrom) * rateTo;
+            const inverseResult = (1 / rateTo) * rateFrom;
+
+            document.getElementById('single-rate-text').innerText = `1 ${selectedFrom} = ${formatFormattedNumber(singleResult)} ${selectedTo}`;
+            document.getElementById('inverse-rate-text').innerText = `1 ${selectedTo} = ${formatFormattedNumber(inverseResult)} ${selectedFrom}`;
+        }
+
+        function swapCurrencies() {
+            const temp = selectedFrom;
+            selectedFrom = selectedTo;
+            selectedTo = temp;
+
+            updateCurrencyHeaderDisplays();
+            calculateCurrency('from');
+            renderPopularGrid();
+        }
+
+        function updateCurrencyHeaderDisplays() {
+            const fromInfo = currencyData[selectedFrom] || { name: selectedFrom, flag: "🌐" };
+            const toInfo = currencyData[selectedTo] || { name: selectedTo, flag: "🌐" };
+
+            document.getElementById('from-code').innerText = selectedFrom;
+            document.getElementById('from-name').innerText = fromInfo.name;
+            document.getElementById('from-flag').innerText = fromInfo.flag;
+
+            document.getElementById('to-code').innerText = selectedTo;
+            document.getElementById('to-name').innerText = toInfo.name;
+            document.getElementById('to-flag').innerText = toInfo.flag;
+
+            document.getElementById('base-currency-label').innerText = selectedFrom;
+        }
+
+        // Render Popular Currency Cards
+        function renderPopularGrid() {
+            const grid = document.getElementById('popular-rates-grid');
+            grid.innerHTML = '';
+
+            const popularCodes = ['IDR', 'USD', 'EUR', 'GBP', 'JPY', 'SGD', 'AUD', 'CNY', 'MYR', 'THB', 'SAR', 'KRW'];
+            const rateFrom = exchangeRates[selectedFrom] || 1;
+
+            popularCodes.forEach(code => {
+                if (code === selectedFrom) return;
+                const info = currencyData[code] || { name: code, flag: "🌐" };
+                const rateTo = exchangeRates[code] || 1;
+                const calculated = (1 / rateFrom) * rateTo;
+
+                const card = document.createElement('div');
+                card.className = "bg-charcoal-800/60 border border-charcoal-700/60 hover:border-amber-500/40 p-3 rounded-xl transition-all cursor-pointer group";
+                card.onclick = () => {
+                    selectedTo = code;
+                    updateCurrencyHeaderDisplays();
+                    calculateCurrency('from');
+                };
+
+                card.innerHTML = `
+                    <div class="flex items-center justify-between mb-1">
+                        <span class="text-base">${info.flag}</span>
+                        <span class="font-mono text-xs font-bold text-slate-300 group-hover:text-amber-400 transition-colors">${code}</span>
+                    </div>
+                    <div class="font-mono text-sm font-semibold text-slate-100 truncate">${formatFormattedNumber(calculated)}</div>
+                    <div class="text-[10px] text-slate-400 truncate">${info.name}</div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        // Currency Selector Modal Logic
+        function openCurrencySelector(target) {
+            activeSelectorTarget = target;
+            document.getElementById('currency-modal').classList.remove('hidden');
+            document.getElementById('currency-search').value = '';
+            document.getElementById('currency-search').focus();
+            renderCurrencyList('');
+        }
+
+        function closeCurrencySelector() {
+            document.getElementById('currency-modal').classList.add('hidden');
+        }
+
+        function filterCurrencyList() {
+            const q = document.getElementById('currency-search').value.toLowerCase();
+            renderCurrencyList(q);
+        }
+
+        function renderCurrencyList(query) {
+            const listContainer = document.getElementById('currency-list');
+            listContainer.innerHTML = '';
+
+            const keys = Object.keys(currencyData).sort();
+
+            keys.forEach(code => {
+                const info = currencyData[code];
+                const matchCode = code.toLowerCase().includes(query);
+                const matchName = info.name.toLowerCase().includes(query);
+
+                if (!query || matchCode || matchName) {
+                    const btn = document.createElement('button');
+                    btn.className = "w-full flex items-center justify-between p-2.5 hover:bg-charcoal-700/70 rounded-xl transition-colors text-left group";
+                    btn.onclick = () => selectCurrency(code);
+
+                    btn.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <span class="text-xl">${info.flag}</span>
+                            <div>
+                                <div class="font-mono font-semibold text-sm text-slate-200 group-hover:text-amber-400">${code}</div>
+                                <div class="text-xs text-slate-400">${info.name}</div>
+                            </div>
+                        </div>
+                        ${(activeSelectorTarget === 'from' && selectedFrom === code) || (activeSelectorTarget === 'to' && selectedTo === code) 
+                            ? '<i data-lucide="check" class="w-4 h-4 text-amber-500"></i>' 
+                            : ''}
+                    `;
+                    listContainer.appendChild(btn);
+                }
+            });
+            lucide.createIcons();
+        }
+
+        function selectCurrency(code) {
+            if (activeSelectorTarget === 'from') {
+                selectedFrom = code;
+            } else {
+                selectedTo = code;
+            }
+            updateCurrencyHeaderDisplays();
+            calculateCurrency('from');
+            renderPopularGrid();
+            closeCurrencySelector();
+        }
+
+        // -------------------------------------------------------------
+        // UNIVERSAL UNIT CONVERTER LOGIC
+        // -------------------------------------------------------------
+        function initUnitConverter() {
+            populateUnitSelects();
+            convertUnits('from');
+        }
+
+        function setUnitCategory(categoryKey) {
+            currentUnitCategory = categoryKey;
+            
+            // Update Tab styles
+            document.querySelectorAll('.unit-cat-btn').forEach(btn => {
+                btn.className = "unit-cat-btn flex-1 min-w-[100px] py-2 px-4 rounded-lg text-sm font-medium transition-all text-slate-400 hover:text-slate-200 flex items-center justify-center gap-2";
+            });
+            const activeBtn = document.getElementById(`unit-cat-${categoryKey}`);
+            if (activeBtn) {
+                activeBtn.className = "unit-cat-btn flex-1 min-w-[100px] py-2 px-4 rounded-lg text-sm font-medium transition-all text-amber-400 bg-charcoal-700 border border-charcoal-600/50 flex items-center justify-center gap-2";
+            }
+
+            populateUnitSelects();
+            convertUnits('from');
+        }
+
+        function populateUnitSelects() {
+            const cat = unitCategories[currentUnitCategory];
+            const fromSelect = document.getElementById('unit-from-select');
+            const toSelect = document.getElementById('unit-to-select');
+
+            fromSelect.innerHTML = '';
+            toSelect.innerHTML = '';
+
+            const keys = Object.keys(cat.units);
+            keys.forEach((unitKey, idx) => {
+                const u = cat.units[unitKey];
+                const opt1 = new Option(u.name, unitKey);
+                const opt2 = new Option(u.name, unitKey);
+                fromSelect.add(opt1);
+                toSelect.add(opt2);
+            });
+
+            // Default selects to 1st and 2nd item
+            if (keys.length > 1) {
+                toSelect.selectedIndex = 1;
+            }
+        }
+
+        function convertUnits(source = 'from') {
+            const cat = unitCategories[currentUnitCategory];
+            const fromKey = document.getElementById('unit-from-select').value;
+            const toKey = document.getElementById('unit-to-select').value;
+
+            const fromInput = document.getElementById('unit-from-input');
+            const toInput = document.getElementById('unit-to-input');
+
+            if (!fromKey || !toKey) return;
+
+            if (cat.type === 'temperature') {
+                // Non-linear temperature math
+                if (source === 'from') {
+                    const val = parseFloat(fromInput.value);
+                    if (isNaN(val)) { toInput.value = ''; return; }
+                    toInput.value = formatNumberInput(convertTemperature(val, fromKey, toKey));
+                } else {
+                    const val = parseFloat(toInput.value);
+                    if (isNaN(val)) { fromInput.value = ''; return; }
+                    fromInput.value = formatNumberInput(convertTemperature(val, toKey, fromKey));
+                }
+                document.getElementById('unit-formula-text').innerText = `Konversi Suhu: ${fromKey} ke ${toKey}`;
+            } else {
+                // Standard ratio math
+                const factorFrom = cat.units[fromKey].factor;
+                const factorTo = cat.units[toKey].factor;
+
+                if (source === 'from') {
+                    const val = parseFloat(fromInput.value);
+                    if (isNaN(val)) { toInput.value = ''; return; }
+                    const baseVal = val * factorFrom;
+                    const result = baseVal / factorTo;
+                    toInput.value = formatNumberInput(result);
+                } else {
+                    const val = parseFloat(toInput.value);
+                    if (isNaN(val)) { fromInput.value = ''; return; }
+                    const baseVal = val * factorTo;
+                    const result = baseVal / factorFrom;
+                    fromInput.value = formatNumberInput(result);
+                }
+
+                const ratio = factorFrom / factorTo;
+                document.getElementById('unit-formula-text').innerText = `1 ${fromKey} = ${formatFormattedNumber(ratio)} ${toKey}`;
+            }
+
+            renderUnitQuickTable();
+        }
+
+        function convertTemperature(value, from, to) {
+            if (from === to) return value;
+            let celsius;
+
+            // Convert to Celsius first
+            if (from === 'C') celsius = value;
+            else if (from === 'F') celsius = (value - 32) * (5/9);
+            else if (from === 'K') celsius = value - 273.15;
+
+            // Convert from Celsius to Target
+            if (to === 'C') return celsius;
+            if (to === 'F') return (celsius * (9/5)) + 32;
+            if (to === 'K') return celsius + 273.15;
+        }
+
+        function swapUnits() {
+            const fromSelect = document.getElementById('unit-from-select');
+            const toSelect = document.getElementById('unit-to-select');
+
+            const temp = fromSelect.value;
+            fromSelect.value = toSelect.value;
+            toSelect.value = temp;
+
+            convertUnits('from');
+        }
+
+        function renderUnitQuickTable() {
+            const grid = document.getElementById('unit-quick-table');
+            grid.innerHTML = '';
+            
+            const cat = unitCategories[currentUnitCategory];
+            const currentFrom = document.getElementById('unit-from-select').value;
+            const currentVal = parseFloat(document.getElementById('unit-from-input').value) || 1;
+
+            const sampleUnits = Object.keys(cat.units).slice(0, 4);
+
+            sampleUnits.forEach(uKey => {
+                let converted;
+                if (cat.type === 'temperature') {
+                    converted = convertTemperature(currentVal, currentFrom, uKey);
+                } else {
+                    const factorFrom = cat.units[currentFrom].factor;
+                    const factorTo = cat.units[uKey].factor;
+                    converted = (currentVal * factorFrom) / factorTo;
+                }
+
+                const card = document.createElement('div');
+                card.className = "bg-charcoal-900 border border-charcoal-700/60 p-3 rounded-xl";
+                card.innerHTML = `
+                    <div class="text-xs text-slate-400 mb-1">${cat.units[uKey].name}</div>
+                    <div class="font-mono text-sm font-semibold text-amber-400 truncate">${formatFormattedNumber(converted)} ${uKey}</div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        function copyUnitResult() {
+            const toInput = document.getElementById('unit-to-input');
+            const toSelect = document.getElementById('unit-to-select');
+            const textToCopy = `${toInput.value} ${toSelect.value}`;
+
+            // Clipboard fallback logic
+            if (navigator.clipboard && window.isSecureContext) {
+                navigator.clipboard.writeText(textToCopy);
+            } else {
+                const textArea = document.createElement("textarea");
+                textArea.value = textToCopy;
+                document.body.appendChild(textArea);
+                textArea.select();
+                try {
+                    document.execCommand('copy');
+                } catch (err) {}
+                document.body.removeChild(textArea);
+            }
+
+            showToast(`Berhasil disalin: ${textToCopy}`);
+        }
+
+        // -------------------------------------------------------------
+        // HELPER UTILITIES
+        // -------------------------------------------------------------
+        function formatNumberInput(num) {
+            if (isNaN(num)) return '';
+            // Avoid extreme decimal precision slop
+            return parseFloat(num.toFixed(6)).toString();
+        }
+
+        function formatFormattedNumber(num) {
+            if (isNaN(num)) return '0';
+            if (Math.abs(num) >= 1000000 || (Math.abs(num) < 0.0001 && Math.abs(num) > 0)) {
+                return num.toExponential(4);
+            }
+            return new Intl.NumberFormat('id-ID', { maximumFractionDigits: 6 }).format(num);
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            const msgEl = document.getElementById('toast-message');
+            msgEl.innerText = msg;
+            toast.classList.remove('translate-y-20', 'opacity-0');
+            toast.classList.add('translate-y-0', 'opacity-100');
+
+            setTimeout(() => {
+                toast.classList.remove('translate-y-0', 'opacity-100');
+                toast.classList.add('translate-y-20', 'opacity-0');
+            }, 2500);
+        }
+    </script>
+</body>
+</html>
